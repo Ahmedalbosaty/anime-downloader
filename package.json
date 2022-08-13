@@ -1,0 +1,22 @@
+{
+  "name": "anime-scrape",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@types/cheerio": "^0.22.31",
+    "axios": "^0.27.2",
+    "cheerio": "^1.0.0-rc.11",
+    "cli-progress": "^3.11.2",
+    "crypto-js": "^4.1.1",
+    "ffmpeg": "^0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "inquirer": "^9.0.0",
+    "user-agents": "^1.0.1106"
+  }
+}
