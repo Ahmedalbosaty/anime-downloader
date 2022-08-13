@@ -63,7 +63,7 @@ const multibar = new cliProgress.MultiBar(
   {
     clearOnComplete: false,
     format:
-      "progress [{bar}] {percentage}% | {episodeName} | ETA: {eta}s | {value}/{total}",
+      "progress [{bar}] {percentage}% | {episodeName} | ETA: {eta}s | {speed} Kb/s | {size}",
   },
   cliProgress.Presets.shades_grey
 );
