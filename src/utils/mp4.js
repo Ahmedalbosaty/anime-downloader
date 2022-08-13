@@ -15,7 +15,6 @@ export async function convertM3u8ToMp4(file, output, progressBar) {
         totalTime = parseInt(data.duration.replace(/:/g, ""));
       })
       .on("end", () => {
-        console.log("nice");
         resolve();
       })
       .on("progress", (progress) => {
