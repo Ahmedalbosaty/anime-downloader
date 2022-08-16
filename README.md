@@ -28,7 +28,7 @@ npm start
 
 ## Todo
 
-- [*] Convert to typescript
+- [x] Convert to typescript
 - [ ] Add support for multiple sources (e.g. animes and manga)
 - [ ] Add support for multiple formats (e.g. mp4, mkv, etc.)
 - [ ] Add support for multiple qualities (e.g. 720p, 1080p, etc.)
