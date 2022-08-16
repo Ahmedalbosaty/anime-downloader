@@ -13,7 +13,7 @@ const qualityMap: Record<Quality, number> = {
 };
 
 export async function convertM3u8ToMp4(
-  file: string,
+  files: string[],
   output: string,
   quality: Quality,
   progressBar: SingleBar
@@ -21,26 +21,37 @@ export async function convertM3u8ToMp4(
   let totalTime: number;
 
   return new Promise<void>((resolve) => {
-    ffmpeg(file)
-      .on("error", (error) => {
-        console.log(`An error occurred with ${file}: `, error?.message);
-      })
-      .on("codecData", (data) => {
-        totalTime = parseInt(data.duration.replace(/:/g, ""));
-      })
-      .on("end", () => {
-        resolve();
-      })
-      .on("progress", (progress) => {
-        const time = parseInt(progress.timemark.replace(/:/g, ""));
-        const percent = (time / totalTime) * 100;
-        const speed = progress.currentKbps * 0.25;
-        const size = formatBytes(progress.targetSize * 1000);
-        progressBar.update(percent, { speed, size });
-      })
-      .outputOptions("-c copy")
-      .outputOptions("-bsf:a aac_adtstoasc")
-      .output(output)
-      .run();
+    try {
+      ffmpeg(files[0])
+        .on("error", (error) => {
+          console.log(`An error occurred with ${files[0]}: `, error?.message);
+          if (files.length > 0) {
+            convertM3u8ToMp4(files.slice(1), output, quality, progressBar);
+          }
+        })
+        .on("codecData", (data) => {
+          totalTime = parseInt(data.duration.replace(/:/g, ""));
+        })
+        .on("end", () => {
+          resolve();
+        })
+        .on("progress", (progress) => {
+          const time = parseInt(progress.timemark.replace(/:/g, ""));
+          const percent = (time / totalTime) * 100;
+          const speed = progress.currentKbps * 0.25;
+          const size = formatBytes(progress.targetSize * 1000);
+          progressBar.update(percent, { speed, size });
+        })
+        .outputOptions("-c copy")
+        .outputOptions("-bsf:a aac_adtstoasc")
+        .outputOptions(`-map p:${qualityMap[quality]}`)
+        .output(output)
+        .run();
+    } catch {
+      console.log(`An error occurred with ${files[0]}`);
+      if (files.length > 0) {
+        convertM3u8ToMp4(files.slice(1), output, quality, progressBar);
+      }
+    }
   });
 }
