@@ -80,12 +80,14 @@ for (
     downloadEpisode(
       res.sources_bk[0].file || res.sources[0].file,
       episodeName,
-      multibar.create(100, 0, { episodeName })
+      multibar.create(100, 0, { episodeName, speed: "N/A", size: "0" })
     )
   );
 }
 
 await Promise.all(links);
+
+process.exit();
 
 function downloadEpisode(link, episodeName, progressBar) {
   return convertM3u8ToMp4(
