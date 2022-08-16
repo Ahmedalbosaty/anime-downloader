@@ -4,12 +4,22 @@ import { formatBytes } from "./filesystem";
 import { SingleBar } from "cli-progress";
 ffmpeg.setFfmpegPath(ffmpegPath.path);
 
+type Quality = "360" | "480" | "720" | "1080";
+const qualityMap: Record<Quality, number> = {
+  "360": 0,
+  "480": 1,
+  "720": 2,
+  "1080": 3,
+};
+
 export async function convertM3u8ToMp4(
   file: string,
   output: string,
+  quality: Quality,
   progressBar: SingleBar
 ) {
   let totalTime: number;
+
   return new Promise<void>((resolve) => {
     ffmpeg(file)
       .on("error", (error) => {
@@ -30,6 +40,7 @@ export async function convertM3u8ToMp4(
       })
       .outputOptions("-c copy")
       .outputOptions("-bsf:a aac_adtstoasc")
+      .outputOptions(`-map p:${qualityMap[quality]}`)
       .output(output)
       .run();
   });

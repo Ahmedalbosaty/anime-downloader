@@ -49,6 +49,13 @@ async function main() {
     },
   });
 
+  const { quality } = await inquirer.prompt({
+    name: "quality",
+    message: "Which quality do you want:",
+    type: "list",
+    choices: ["360", "480", "720", "1080"],
+  });
+
   // Generate Folder
   mkdir(path.join(config.get("outFolder"), anime));
 
@@ -75,6 +82,7 @@ async function main() {
       convertM3u8ToMp4(
         m3u8,
         path.join(config.get("outFolder"), anime, `${episodeName}.mp4`),
+        quality,
         multibar.create(100, 0, { episodeName, speed: "N/A", size: "0" })
       )
     );
