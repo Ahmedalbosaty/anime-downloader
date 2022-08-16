@@ -5,6 +5,9 @@ import { loadConfig, mkdir } from "./utils/filesystem";
 import { searchAnime, getAvailableEpisodes, getM3u8 } from "./utils/anime";
 import { convertM3u8ToMp4 } from "./utils/mp4";
 import IResult from "./lib/result";
+import { QUALITIES } from "./utils/constants";
+import { getM3u8Metadata } from "./utils/network";
+import { arraysEqual } from "./utils/misc";
 
 async function main() {
   const config = await loadConfig();
@@ -49,19 +52,12 @@ async function main() {
     },
   });
 
-  const { quality } = await inquirer.prompt({
-    name: "quality",
-    message: "Which quality do you want:",
-    type: "list",
-    choices: ["360", "480", "720", "1080"],
-  });
-
-  // Generate Folder
-  mkdir(path.join(config.get("outFolder"), anime));
-
   const episodes = episode.split("-");
   const firstEpisode = Number(episodes[0]);
   const lastEpisode = Number(episodes[1] || episodes[0]);
+
+  // Generate Folder
+  mkdir(path.join(config.get("outFolder"), anime));
 
   // Initialize Progress Bar
   const multibar = new cliProgress.MultiBar(
@@ -73,6 +69,8 @@ async function main() {
     cliProgress.Presets.shades_grey
   );
 
+  var previousQualities: string[] = [];
+
   // Download Episodes Syncronously
   const functions: Promise<void>[] = [];
   for (let i = firstEpisode; i <= lastEpisode; i++) {
@@ -82,11 +80,24 @@ async function main() {
       console.log(`${episodeName} is not available`);
       continue;
     }
+    const { segments } = await getM3u8Metadata(m3u8);
+    const qualities: string[] = segments.map((s) => s.streamInf.resolution);
+
+    if (arraysEqual(previousQualities, qualities)) {
+    } else {
+      var { quality } = await inquirer.prompt({
+        name: "quality",
+        message: `Which quality do you want for episode ${i}:`,
+        type: "list",
+        choices: qualities,
+      });
+    }
+    previousQualities = [...qualities];
     functions.push(
       convertM3u8ToMp4(
         m3u8,
         path.join(config.get("outFolder"), anime, `${episodeName}.mp4`),
-        quality,
+        qualities.findIndex((q) => q === quality),
         multibar.create(100, 0, { episodeName, speed: "N/A", size: "0" })
       )
     );

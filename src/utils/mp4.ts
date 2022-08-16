@@ -4,18 +4,10 @@ import { formatBytes } from "./filesystem";
 import { SingleBar } from "cli-progress";
 ffmpeg.setFfmpegPath(ffmpegPath.path);
 
-type Quality = "360" | "480" | "720" | "1080";
-const qualityMap: Record<Quality, number> = {
-  "360": 0,
-  "480": 1,
-  "720": 2,
-  "1080": 3,
-};
-
 export async function convertM3u8ToMp4(
   files: string[],
   output: string,
-  quality: Quality,
+  pId: number,
   progressBar: SingleBar
 ) {
   let totalTime: number;
@@ -26,7 +18,7 @@ export async function convertM3u8ToMp4(
         .on("error", (error) => {
           console.log(`An error occurred with ${files[0]}: `, error?.message);
           if (files.length > 0) {
-            convertM3u8ToMp4(files.slice(1), output, quality, progressBar);
+            convertM3u8ToMp4(files.slice(1), output, pId, progressBar);
           }
         })
         .on("codecData", (data) => {
@@ -44,13 +36,13 @@ export async function convertM3u8ToMp4(
         })
         .outputOptions("-c copy")
         .outputOptions("-bsf:a aac_adtstoasc")
-        .outputOptions(`-map p:${qualityMap[quality]}`)
+        .outputOptions(`-map p:${pId}`)
         .output(output)
         .run();
     } catch {
       console.log(`An error occurred with ${files[0]}`);
       if (files.length > 0) {
-        convertM3u8ToMp4(files.slice(1), output, quality, progressBar);
+        convertM3u8ToMp4(files.slice(1), output, pId, progressBar);
       }
     }
   });
