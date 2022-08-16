@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BASE_DETAILS_URL = exports.BASE_SEARCH_URL = exports.BASE_STREAM_URL = exports.BASE_EPISODE_URL = void 0;
+const BASE_EPISODE_URL = (id) => `https://gogoanime.gg/${id}`;
+exports.BASE_EPISODE_URL = BASE_EPISODE_URL;
+const BASE_STREAM_URL = (id) => `${"https://goload.pro/streaming.php"}?id=${id}`;
+exports.BASE_STREAM_URL = BASE_STREAM_URL;
+const BASE_SEARCH_URL = (search, page) => `${"https://gogoanime.film/" + "/search.html"}?keyword=${search}&page=${page}`;
+exports.BASE_SEARCH_URL = BASE_SEARCH_URL;
+const BASE_DETAILS_URL = (id) => `https://gogoanime.gg/category/${id}`;
+exports.BASE_DETAILS_URL = BASE_DETAILS_URL;
