@@ -71,6 +71,10 @@ async function main() {
   for (let i = firstEpisode; i <= lastEpisode; i++) {
     const episodeName = `${anime}-episode-${i}`;
     const m3u8 = await getM3u8(episodeName);
+    if (m3u8.length === 0) {
+      console.log(`${episodeName} is not available`);
+      continue;
+    }
     functions.push(
       convertM3u8ToMp4(
         m3u8,
@@ -81,7 +85,7 @@ async function main() {
   }
   await Promise.all(functions);
 
-  console.log("Enjoy! :)");
+  console.log("\nEnjoy! :)");
 
   process.exit();
 }

@@ -50,9 +50,8 @@ export async function searchAnime(
 }
 
 // Get Streaming Link for given episode by id or name
-export async function getM3u8(id: string): Promise<string | undefined> {
-  let sources: any[] = [];
-  let sources_bk: any[] = [];
+export async function getM3u8(id: string): Promise<string[]> {
+  let sources: string[] = [];
   try {
     let epPage, server, $, serverUrl;
 
@@ -89,17 +88,14 @@ export async function getM3u8(id: string): Promise<string | undefined> {
 
     if (!res.source) throw new Error("No sources found!");
 
-    res.source.forEach((source: any) => sources.push(source));
-    res.source_bk.forEach((source: any) => sources_bk.push(source));
+    for (const source of res.source) {
+      if (await checkUrl(source.file)) sources.push(source.file);
+    }
+    for (const source of res.source_bk) {
+      if (await checkUrl(source.file)) sources.push(source.file);
+    }
 
-    sources.filter(async (source) => {
-      return await checkUrl(source.file);
-    });
-    sources_bk.filter(async (source) => {
-      return await checkUrl(source.file);
-    });
-
-    return sources_bk[0].file || sources[0].file;
+    return sources;
   } catch (err) {
     throw new Error(err);
   }
