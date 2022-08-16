@@ -1,12 +1,16 @@
 import ffmpegPath from "@ffmpeg-installer/ffmpeg";
 import ffmpeg from "fluent-ffmpeg";
-import { formatBytes } from "./filesystem.js";
+import { formatBytes } from "./filesystem";
+import { SingleBar } from "cli-progress";
 ffmpeg.setFfmpegPath(ffmpegPath.path);
 
-export async function convertM3u8ToMp4(file, output, progressBar) {
-  let totalTime;
-
-  return new Promise((resolve, reject) => {
+export async function convertM3u8ToMp4(
+  file: string,
+  output: string,
+  progressBar: SingleBar
+) {
+  let totalTime: number;
+  return new Promise<void>((resolve) => {
     ffmpeg(file)
       .on("error", (error) => {
         console.log(`An error occurred with ${file}: `, error?.message);

@@ -4,36 +4,30 @@ import userAgent from "user-agents";
 import {
   decryptEncryptAjaxResponse,
   generateEncryptAjaxParameters,
-} from "./goload.js";
+} from "./goload";
 import {
   BASE_EPISODE_URL,
   BASE_SEARCH_URL,
   BASE_STREAM_URL,
   BASE_DETAILS_URL,
-} from "./constants.js";
-import { convertM3u8ToMp4 } from "./mp4.js";
-import { checkUrl } from "./network.js";
-
-// Use ffmpeg to convert m3u8 to mp4
-export function downloadEpisode(link, episodeName, progressBar) {
-  return convertM3u8ToMp4(
-    link,
-    path.join(config.outFolder, anime, `${episodeName}.mp4`),
-    progressBar
-  );
-}
+} from "./constants";
+import { checkUrl } from "./network";
+import IResult from "../lib/result";
 
 // Get Amount of episodes for an anime
-export async function getAvailableEpisodes(anime) {
+export async function getAvailableEpisodes(anime: string) {
   const res = await axios.get(BASE_DETAILS_URL(anime));
   const $ = cheerio.load(res.data);
   const end = $("#episode_page > li").last().find("a").attr("ep_end");
-  return end;
+  return parseInt(end || "0");
 }
 
 // Search for Anime using gogoanime
-export async function searchAnime(search, page = 0) {
-  const results = [];
+export async function searchAnime(
+  search: string,
+  page = 0
+): Promise<IResult[]> {
+  const results: IResult[] = [];
 
   try {
     const searchPage = await axios.get(BASE_SEARCH_URL(search, page));
@@ -41,24 +35,24 @@ export async function searchAnime(search, page = 0) {
 
     $("div.last_episodes > ul > li").each((i, el) => {
       results.push({
-        animeId: $(el).find("p.name > a").attr("href").split("/")[2],
-        animeTitle: $(el).find("p.name > a").attr("title"),
-        animeUrl: "/" + $(el).find("p.name > a").attr("href"),
-        animeImg: $(el).find("div > a > img").attr("src"),
+        animeId: $(el).find("p.name > a").attr("href")?.split("/")[2]!,
+        animeTitle: $(el).find("p.name > a").attr("title")!,
+        animeUrl: "/" + $(el).find("p.name > a").attr("href")!,
+        animeImg: $(el).find("div > a > img").attr("src")!,
         status: $(el).find("p.released").text().trim(),
       });
     });
 
     return results;
   } catch (err) {
-    console.log(err);
+    return [];
   }
 }
 
 // Get Streaming Link for given episode by id or name
-export async function getM3u8(id) {
-  let sources = [];
-  let sources_bk = [];
+export async function getM3u8(id: string): Promise<string | undefined> {
+  let sources: any[] = [];
+  let sources_bk: any[] = [];
   try {
     let epPage, server, $, serverUrl;
 
@@ -70,7 +64,7 @@ export async function getM3u8(id) {
     } else serverUrl = new URL(BASE_STREAM_URL(id));
 
     const goGoServerPage = await axios.get(serverUrl.href, {
-      headers: { "User-Agent": userAgent },
+      headers: { "User-Agent": userAgent.toString() },
     });
 
     const $$ = cheerio.load(goGoServerPage.data);
@@ -85,19 +79,18 @@ export async function getM3u8(id) {
       ${serverUrl.protocol}//${serverUrl.hostname}/encrypt-ajax.php?${params}`,
       {
         headers: {
-          "User-Agent": userAgent,
+          "User-Agent": userAgent.toString(),
           "X-Requested-With": "XMLHttpRequest",
         },
       }
     );
 
-    const res = decryptEncryptAjaxResponse(fetchRes.data);
+    const res: any = decryptEncryptAjaxResponse(fetchRes.data);
 
-    if (!res.source)
-      return { error: "No sources found!! Try different source." };
+    if (!res.source) throw new Error("No sources found!");
 
-    res.source.forEach((source) => sources.push(source));
-    res.source_bk.forEach((source) => sources_bk.push(source));
+    res.source.forEach((source: any) => sources.push(source));
+    res.source_bk.forEach((source: any) => sources_bk.push(source));
 
     sources.filter(async (source) => {
       return await checkUrl(source.file);
@@ -106,12 +99,8 @@ export async function getM3u8(id) {
       return await checkUrl(source.file);
     });
 
-    return {
-      Referer: serverUrl.href,
-      sources: sources,
-      sources_bk: sources_bk,
-    };
+    return sources_bk[0].file || sources[0].file;
   } catch (err) {
-    return { error: err };
+    throw new Error(err);
   }
 }
