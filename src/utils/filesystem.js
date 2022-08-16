@@ -6,8 +6,13 @@ export function mkdir(path) {
   }
 }
 
+var config = {};
+
 export async function loadConfig() {
   try {
+    if (config) {
+      return config;
+    }
     const data = fs.readFileSync("./config.json");
     return JSON.parse(data);
   } catch (e) {
